@@ -284,8 +284,11 @@ export class PricingService {
   }
 
   combinePricesToSimpleObject(ninjaPrice: NinjaPriceInfo, watchPrice: CombinedItemPriceInfo): SimpleItemPricing {
+
+    const priceToDisplay = this.getPrice(ninjaPrice.value, watchPrice.mean);
+
     const pricing: SimpleItemPricing = {
-      chaosequiv: ninjaPrice !== undefined ? ninjaPrice.value : 0,
+      chaosequiv: priceToDisplay !== undefined ? priceToDisplay : 0,
       chaosequiv_min: watchPrice !== undefined ? watchPrice.min : 0,
       chaosequiv_max: watchPrice !== undefined ? watchPrice.max : 0,
       chaosequiv_mode: watchPrice !== undefined ? watchPrice.mode : 0,
@@ -294,6 +297,17 @@ export class PricingService {
       quantity: watchPrice !== undefined ? watchPrice.quantity : 0,
     };
     return pricing;
+  }
+
+  getPrice(ninjavalue: number, watchvalue: number) {
+    // compare ninja and watch-prices to evaluate likelihood of price being correct
+    if (watchvalue !== undefined && watchvalue > 0 && ninjavalue !== undefined && ninjavalue > 0) {
+      const percentageDiff = (ninjavalue / watchvalue) * 100;
+      return percentageDiff > 0.7 && percentageDiff < 1.3 ? ninjavalue : watchvalue;
+    // otherwhise use ninjaprice if > 0
+    } else if (ninjavalue !== undefined && ninjavalue > 0) {
+      return ninjavalue;
+    }
   }
 
 }
